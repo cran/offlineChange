@@ -70,6 +70,66 @@ knitr::opts_chunk$set(echo = TRUE)
 #  ScorePlot(result, main="score plot")
 
 ## ----eval=FALSE----------------------------------------------------------
+#  install.packages('MHadaptive')
+#  library('MHadaptive')
+#  gen_EFdata <- function(N){
+#    q <- 4
+#    Ns <- c(floor(0.2*N), floor(0.3*N), N-floor(0.2*N)-floor(0.3*N))
+#    thetas <- c(0.2,0.6,1)
+#    X <- c()
+#    for (k in 1:3){
+#      loglik <- function( x ){
+#        res <- - thetas[k] * abs(x)^q
+#      }
+#      mh <- Metro_Hastings(loglik,
+#                           rgamma(n = 1, shape = 3, rate = 1),
+#                           prop_sigma = NULL,
+#                           par_names = NULL,
+#                           iterations = 11000,
+#                           burn_in = 1000,
+#                           adapt_par = c(100, 20, 0.5, 0.75),
+#                           quiet = TRUE)
+#      mh0 <-  mcmc_thin(mh, thin = 20)
+#      X <- c(X, mh0$trace[1:Ns[k]])
+#    }
+#    return(X)
+#  }
+#  GetHle=function(x,window_size) {
+#    q <- 4
+#    N <- length(x)
+#    n_window <- ceiling(N/window_size)
+#    x_transformed <- rep(0,n_window)
+#    for (n in 1:n_window) {
+#      #get estimated coefficients
+#      xx <- x[(1+(n-1)*window_size):min(n*window_size,N)]
+#      x_transformed[n] <- q * (q-1) * sum(abs(xx)^(q-2)) / sum(q^2 * abs(xx)^(2*q-2))
+#    }
+#    return(x_transformed)
+#  }
+#  
+#  N <- 1000
+#  X <- gen_EFdata(N)
+#  result <- MultiWindow(X,
+#                        window_list=c(100,80,50,30, 20),
+#                        get_mle=GetHle,
+#                        point_max=3,
+#                        seg_min=1,
+#                        tolerance=1)
+#  
+
+## ----eval=FALSE----------------------------------------------------------
+#  toy_penatly=function(num_each, wgss, D, K, N) {
+#    penalty <- sum(num_each * log(wgss/num_each)) + 2 * D * K * log(N)
+#    return(penalty)
+#  }
+#  result <- MultiWindow(y,
+#                        window_list=c(100,80,50,30, 20),
+#                        penalty="toy_penalty",
+#                        point_max=3,
+#                        seg_min=1,
+#                        tolerance=1)
+
+## ----eval=FALSE----------------------------------------------------------
 #  result <- MultiWindow(y,
 #                        window_list = c(100,50,20,10,5),
 #                        prior_range = list(c(30,200),c(220,400)))
