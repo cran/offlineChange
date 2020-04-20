@@ -3,7 +3,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## ----eval=FALSE----------------------------------------------------------
 #  library(offlineChange)
-#  # Data
+#  # Create AR(2) data y with 1000 observations that has 2 change points: 100, 400
 #  N <- 1000
 #  N1 <- floor(0.1*N)
 #  N2 <- floor(0.3*N)
@@ -23,25 +23,40 @@ knitr::opts_chunk$set(echo = TRUE)
 #      y[n] <- y[(n-1):(n-L)] %*% a3 + c3 + rnorm(1)
 #    }
 #  }
+#  # Detect change points of y using window size 100, 50, 20, 10, 5 respectively
 #  result <- MultiWindow(y,
 #                        window_list = c(100,50,20,10,5),
 #                        point_max   = 5)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  result$n_peak_range
-#  result$peak_range
+#  result$n_peak_range # number of peak ranges
+#  result$peak_range # ranges that contain change points
 
 ## ----eval=FALSE----------------------------------------------------------
-#  result <- MultiWindow(y,
+#  result <- MultiWindow(# The original data to find change points.
+#                        y,
+#                        # The list of window sizes
 #                        window_list = c(100, 50, 20, 10, 5),
+#                        # The largest candidate number of change points.
 #                        point_max   = 5,
+#                        # The prior ranges that considered to contain change points.
 #                        prior_range = NULL,
+#                        # The method used to transform dependent data to independent data.
 #                        get_mle     = GetMle,
-#                        penalty     = c("bic","aic"),
+#                        # Penalty type term. Default is "bic".
+#                        # Users can use other penalty term.
+#                        penalty     = c("bic","aic","bc"),
+#                        # Minimal segment size between change points at transformed sacle.
 #                        seg_min     = 1,
+#                        # The number of repetition times, in order to avoid local minimum.
 #                        num_init    = NULL,
+#                        # The tolerance level. The maximal difference between the
+#                        # score of selected peak ranges and highest score.
 #                        tolerance   = 1,
+#                        # Logical value indicating whether to accelerate using rcpp.
+#                        # Default is TRUE
 #                        cpp         = TRUE,
+#                        # Logical value indicating whether to return score. Default is FALSE.
 #                        ret_score   = FALSE
 #                        )
 
@@ -118,7 +133,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #  
 
 ## ----eval=FALSE----------------------------------------------------------
-#  toy_penatly=function(num_each, wgss, D, K, N) {
+#  toy_penalty=function(num_each, wgss, D, K, N) {
 #    penalty <- sum(num_each * log(wgss/num_each)) + 2 * D * K * log(N)
 #    return(penalty)
 #  }
@@ -161,7 +176,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## ----eval=FALSE----------------------------------------------------------
 #  result <- ChangePoints(x,
 #                         point_max = 5,
-#                         penalty   = c("bic","aic"),
+#                         penalty   = c("bic","aic","bc"),
 #                         seg_min   = 1,
 #                         num_init  = NULL,
 #                         cpp       = TRUE)
@@ -170,7 +185,10 @@ knitr::opts_chunk$set(echo = TRUE)
 #  result <- OrderKmeans(x, K = 2)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  result <- OrderKmeans(x, K = 2, num_init=NULL)
+#  result <- OrderKmeans(x, K = 2, num_init=10)
+
+## ----eval=FALSE----------------------------------------------------------
+#  result <- OrderKmeansCpp(x, K = 2)
 
 ## ----eval=FALSE----------------------------------------------------------
 #  l1 <- c(15,25)
@@ -179,5 +197,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #  result <- PriorRangeOrderKmeans(x, prior_range_x = list(l1,l2))
 
 ## ----eval=FALSE----------------------------------------------------------
-#  result <- PriorRangeOrderKmeans(x, prior_range_x, num_init=NULL)
+#  result <- PriorRangeOrderKmeans(x, prior_range_x, num_init=5)
+
+## ----eval=FALSE----------------------------------------------------------
+#  result <- PriorRangeOrderKmeansCpp(x, prior_range_x)
 

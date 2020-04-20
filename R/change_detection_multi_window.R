@@ -30,14 +30,17 @@
 #' @param get_mle The method used to transform dependent data to independent
 #'   data.
 #' @param penalty Penalty type term. Default is "bic". Users can use other penalty term.
-#' @param seg_min Minimal segment size, must be positive integer.
+#' @param seg_min Minimal segment size between change points at transformed sacle, 
+#'  must be positive integer.
 #' @param num_init The number of repetition times, in order to avoid local
-#'   minimal. Default is squared root of number of transformed data.
-#' @param tolerance The tolerance level. The selected narrow ranges are with
+#'   minimum. Default is squared root of number of transformed data.
+#' @param tolerance The tolerance level. The maximal difference between the score of 
+#'   selected peak ranges and highest score.
 #' @param cpp Logical value indicating whether to accelerate using rcpp. Default is TRUE.
 #' @param ret_score Logical value indicating whether to return score. Default is FALSE.
 #' 
 #' @importFrom Rcpp evalCpp
+#' @importFrom methods is
 #' @return
 #'   \item{n_peak_range}{The number of peak ranges.}
 #'   \item{peak_ranges}{The location of peak ranges.}
@@ -86,17 +89,18 @@ MultiWindow <- function(y,
     #r=1
     #test
     window_size <- window_list[r]
-    n_window <- ceiling(len/window_size)
+    #n_window <- ceiling(len/window_size)
     # Get transformed approximated independent data
     x <- get_mle(y, window_size=window_size)
     # if the data is a list, transform it into matrix
-    if (class(x) != "matrix") {
+    if (!is(x, "matrix")) {
       x <- as.matrix(x)
     }
+    # set the random initialization times
+    if (is.null(num_init)) {
+      num_init <- floor(sqrt(dim(x)[1]))
+    }
     if (is.null(prior_range)) {
-      #test
-      #print("change_point")
-      #test
       # Get the change points of transformed data
       change_point <- ChangePoints(x,point_max=point_max,penalty=penalty,seg_min=1,num_init=num_init,cpp=cpp)$change_point
     } else {
@@ -108,21 +112,26 @@ MultiWindow <- function(y,
         transformed_range[2] <- ceiling(prior_range[[i]][2]/window_size)
         trans_prior_range[[i]] <- transformed_range
       }
-      #test
-      #print("range")
-      #print(dim(x_transformed))
-      #test
-      change_point<-PriorRangeOrderKmeans(x,prior_range_x=trans_prior_range,num_init=num_init)$change_point
+      if (cpp == TRUE) {
+        change_point<-PriorRangeOrderKmeansCpp(x,prior_range_x=trans_prior_range,num_init=num_init)$change_point
+        cat("change_point:", change_point)
+      } else {
+        change_point<-PriorRangeOrderKmeans(x,prior_range_x=trans_prior_range,num_init=num_init)$change_point
+      }
     }
     # Map the change points of transformed data to original data and get score the change points.
-    if (r==1){
-      for (k in 1:(length(change_point))) {
-        score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1) * window_size,len),r]<-score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1)*window_size,len),r]+1
-      }
-    } else {
+    if (r > 1){
       score[1:len,r] <- score[1:len,r-1]
-      for (k in 1:(length(change_point))) {
-        score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1)*window_size,len),r]<-score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1)*window_size,len),(r-1)]+1
+    }
+    for (k in 1:(length(change_point))) {
+      if (k > 1) {
+        if ((change_point[k] - change_point[k-1]) == 1) {
+          score[(1+change_point[k]*window_size):min((change_point[k]+1) * window_size,len),r]<-score[(1+change_point[k]*window_size):min((change_point[k]+1)*window_size,len),r]+1
+        } else {
+          score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1) * window_size,len),r]<-score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1)*window_size,len),r]+1
+        }
+      } else {
+        score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1) * window_size,len),r]<-score[(1+(change_point[k]-1)*window_size):min((change_point[k]+1)*window_size,len),r]+1
       }
     }
   }
@@ -135,5 +144,4 @@ MultiWindow <- function(y,
    result$score <- score
   }
   return(result)
-  #return(score)
 }

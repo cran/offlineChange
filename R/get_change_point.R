@@ -38,8 +38,8 @@ RangeToPoint<-function(y,n_peak_range,peak_range,get_loglik=GetLogLik) {
   for (i in 1:n_peak_range) {
     change_point[i] <- ceiling(mean(peak_range[[i]]))
   }
-  # add 1 as the first change point and len as the last change point for computation convenience
-  change_point <- c(1, change_point, len)
+  # for computation convenience
+  change_point <- c(0, change_point, len)
 
   for (i in 1:n_peak_range) {
     best_log_lik <- Inf
@@ -102,5 +102,5 @@ GetLogLik <- function(y, left, right) {
   C <- solve(A)%*%B
   e <- y[left:right]-t(Y)%*%C
   sigma2 <- sum(e^2)/(right-left+1)
-  log_lik <- (right-left)*log(sigma2)
+  log_lik <- (right-left+1)*log(sigma2)
 }

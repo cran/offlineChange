@@ -4,10 +4,19 @@
 \alias{MultiWindow}
 \title{Multi-window Change Points Detection}
 \usage{
-MultiWindow(y, window_list = c(100, 50, 20, 10, 5), point_max = 5,
-  prior_range = NULL, get_mle = GetMle, penalty = "bic",
-  seg_min = 1, num_init = NULL, tolerance = 1, cpp = TRUE,
-  ret_score = FALSE)
+MultiWindow(
+  y,
+  window_list = c(100, 50, 20, 10, 5),
+  point_max = 5,
+  prior_range = NULL,
+  get_mle = GetMle,
+  penalty = "bic",
+  seg_min = 1,
+  num_init = NULL,
+  tolerance = 1,
+  cpp = TRUE,
+  ret_score = FALSE
+)
 }
 \arguments{
 \item{y}{The original data to find change points. Must be one dimensional
@@ -28,12 +37,14 @@ data.}
 
 \item{penalty}{Penalty type term. Default is "bic". Users can use other penalty term.}
 
-\item{seg_min}{Minimal segment size, must be positive integer.}
+\item{seg_min}{Minimal segment size between change points at transformed sacle, 
+must be positive integer.}
 
 \item{num_init}{The number of repetition times, in order to avoid local
-minimal. Default is squared root of number of transformed data.}
+minimum. Default is squared root of number of transformed data.}
 
-\item{tolerance}{The tolerance level. The selected narrow ranges are with}
+\item{tolerance}{The tolerance level. The maximal difference between the score of 
+selected peak ranges and highest score.}
 
 \item{cpp}{Logical value indicating whether to accelerate using rcpp. Default is TRUE.}
 
